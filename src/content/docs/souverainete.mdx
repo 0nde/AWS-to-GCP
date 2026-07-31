@@ -1,0 +1,33 @@
+---
+title: Souveraineté, localisation et dépendances
+description: Distinguer résidence, souveraineté juridique, opérationnelle, commerciale et technique.
+---
+
+## Cinq questions plutôt qu’un label
+
+| Dimension | Question de design |
+|---|---|
+| Résidence des données | Où résident données, backups, logs, métadonnées et copies ? |
+| Juridique | Quelle entité contractuelle et quelles lois peuvent s’appliquer ? |
+| Opérationnelle | Qui opère le control plane, le support et les clés ? |
+| Technique | Peut-on contrôler chiffrement, accès, connectivité et localisation ? |
+| Commerciale | Quel niveau de dépendance fournisseur, de réversibilité et de continuité contractuelle ? |
+
+AWS et GCP offrent des régions, options de chiffrement et environnements réglementés, mais une région européenne n’est pas une conclusion juridique ou souveraine à elle seule. Documenter aussi les services globaux, la télémétrie, les comptes de support, les identities, les clés, les sous-traitants et les opérations d’administration.
+
+## Mécanismes GCP à examiner
+
+- **Assured Workloads** pour des configurations de conformité ciblées, sans l’assimiler automatiquement à GovCloud.
+- **CMEK / Cloud HSM / External Key Manager** selon la propriété de contrôle de clé visée ; évaluer disponibilité, latence, dépendance et scénario de perte de clé.
+- Policies de localisation, organisation/folders dédiés, VPC Service Controls et accès administrateur contextuel.
+- Portabilité des données, formats, images, Terraform et dépendances managées réelles.
+
+<div class="risk"><strong>Fausse assurance.</strong> Le chiffrement ne résout pas seul la résidence, le Cloud Act, l’accès opérateur, la disponibilité ou la portabilité. Chaque revendication de souveraineté doit être liée à une exigence, un mécanisme, une preuve et une limite connue.</div>
+
+## Checklist de décision
+
+1. Inventorier données, métadonnées, logs, sauvegardes et flux transfrontières.
+2. Identifier le périmètre de service exact, la région et le launch stage.
+3. Vérifier contractuellement les engagements applicables à l’offre et au pays.
+4. Tester l’effet d’une indisponibilité d’EKM, d’un IdP ou d’un control plane externe.
+5. Écrire un plan de sortie réaliste, avec temps et coût de transfert.

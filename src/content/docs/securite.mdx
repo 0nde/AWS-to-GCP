@@ -1,0 +1,38 @@
+---
+title: "Sécurité : frontières réelles et prévention d’exfiltration"
+description: IAM, VPC Service Controls, SCC, Cloud Armor, IAP et sécurité de la supply chain.
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+## Les frontières ne sont pas interchangeables
+
+| Contrôle | Rôle | Ne remplace pas |
+|---|---|---|
+| IAM allow / deny / PAB | Qui peut faire quelle action API | Un firewall, un périmètre d’exfiltration ou une validation applicative |
+| Organization Policy | Quelles configurations sont autorisées | Une permission IAM fine |
+| Firewall policy | Quel flux réseau est autorisé | Le contrôle API des services Google |
+| VPC Service Controls | Réduire l’exfiltration via périmètres de services | Une ACL bucket ou Private Service Connect |
+| Cloud Armor | Protection L7/DDoS aux frontends | La sécurité east-west |
+
+<Mermaid chart={`flowchart LR
+  U[Principal IAM] --> A[Google API]
+  A --> I[IAM allow / deny / PAB]
+  A --> V[VPC Service Controls perimeter]
+  W[Workload privé] --> P[Private Google Access / PSC]
+  P --> A
+  S[SCC findings] --> R[SIEM / réponse]`} caption="Les contrôles GCP s’additionnent : identité, périmètre de services, réseau et détection ont chacun un rôle." />
+
+## VPC Service Controls : concept non isomorphe
+
+VPC Service Controls crée des service perimeters autour de services supportés pour limiter la copie de données vers des ressources hors périmètre, même lorsque l’appelant possède IAM. Sa mise en œuvre exige un design des ingress/egress rules, de l’accès administrateur et des services intégrés. C’est un garde-fou d’exfiltration, pas un réseau privé virtuel. [Vue d’ensemble VPC SC](https://cloud.google.com/vpc-service-controls/docs/overview)
+
+<div class="risk"><strong>Erreurs graves.</strong> Laisser des clés de service account ; donner Token Creator trop largement ; ne pas activer/centraliser les Data Access logs utiles ; traiter SCC comme un produit activé plutôt qu’un processus de triage et remédiation ; déployer VPC SC en production sans mode dry-run et parcours de break-glass.</div>
+
+## Zero Trust et accès applicatif
+
+IAP et BeyondCorp apportent une approche contextuelle à l’accès HTTP/TCP selon le produit. Le modèle cible est : identité fédérée, device/access context quand requis, accès explicite à l’application, journalisation et réponse aux anomalies — non un VPN qui rend implicitement tout le réseau fiable.
+
+## Supply chain
+
+Associer Artifact Registry, provenance/attestations selon l’outillage retenu, service accounts CI minimaux, Workload Identity Federation et politiques de déploiement. Vérifier la provenance des images avant GKE/Cloud Run ; une registry privée ne suffit pas à prouver ce qui a produit l’artefact.

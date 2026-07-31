@@ -1,0 +1,28 @@
+---
+import { mappings } from '../data/mappings';
+const domains = [...new Set(mappings.map((mapping) => mapping.domain))];
+---
+<div class="service-matrix" data-service-matrix data-mappings={JSON.stringify(mappings)}>
+  <div class="service-filters" aria-label="Filtres de correspondances">
+    <label>Rechercher AWS ou GCP<input type="search" data-filter="text" placeholder="Spanner, PrivateLink, SCP…" /></label>
+    <label>Domaine<select data-filter="domain"><option value="">Tous les domaines</option>{domains.map((domain) => <option value={domain}>{domain}</option>)}</select></label>
+    <label>Niveau d’équivalence<select data-filter="equivalence"><option value="">Tous les niveaux</option><option>Directe</option><option>Approximative</option><option>Sans équivalent</option></select></label>
+  </div>
+  <p class="service-result-count" aria-live="polite" data-result-count></p>
+  <div class="comparison-table"><table tabindex="0" aria-label="Table de correspondance AWS vers GCP défilable horizontalement"><thead><tr><th>Domaine</th><th>AWS</th><th>GCP le plus proche</th><th>Équivalence</th><th>Différence principale</th><th>Piège potentiel</th></tr></thead><tbody data-results></tbody></table></div>
+</div>
+<script>
+  type BrowserMapping = { domain: string; aws: string; gcp: string; equivalence: string; difference: string; trap: string };
+  document.querySelectorAll<HTMLElement>('[data-service-matrix]').forEach((root) => {
+    const data = JSON.parse(root.dataset.mappings || '[]') as BrowserMapping[];
+    const text = root.querySelector<HTMLInputElement>('[data-filter="text"]');
+    const domain = root.querySelector<HTMLSelectElement>('[data-filter="domain"]');
+    const equivalence = root.querySelector<HTMLSelectElement>('[data-filter="equivalence"]');
+    const tbody = root.querySelector<HTMLTableSectionElement>('[data-results]');
+    const count = root.querySelector<HTMLElement>('[data-result-count]');
+    if (!text || !domain || !equivalence || !tbody || !count) return;
+    const cell = (value: string) => { const td = document.createElement('td'); td.textContent = value; return td; };
+    const draw = () => { const q = text.value.toLowerCase(); const rows = data.filter((m) => (!q || Object.values(m).join(' ').toLowerCase().includes(q)) && (!domain.value || m.domain === domain.value) && (!equivalence.value || m.equivalence === equivalence.value)); tbody.replaceChildren(...rows.map((m) => { const tr = document.createElement('tr'); [m.domain,m.aws,m.gcp,m.equivalence,m.difference,m.trap].forEach((v) => tr.append(cell(v))); return tr; })); count.textContent = `${rows.length} correspondance${rows.length === 1 ? '' : 's'} affichée${rows.length === 1 ? '' : 's'} sur ${data.length}.`; };
+    [text, domain, equivalence].forEach((control) => control.addEventListener('input', draw)); draw();
+  });
+</script>

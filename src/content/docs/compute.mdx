@@ -1,0 +1,40 @@
+---
+title: Compute, containers et serverless
+description: Choisir le niveau d’abstraction GCP sans répliquer les habitudes AWS.
+---
+
+## Choix de runtime
+
+| Intention | AWS courant | GCP courant | Décision à prendre |
+|---|---|---|---|
+| VM contrôlée | EC2 | Compute Engine | Image, MIG, patching, identité et réseau |
+| Flotte homogène | ASG | Managed Instance Group | Health check, autoscaling, template immuable |
+| Kubernetes | EKS | GKE Standard / Autopilot | Niveau d’ownership du cluster et des nodes |
+| Conteneur HTTP stateless | App Runner / Fargate | Cloud Run | Concurrence, timeout, ingress et identité appelante |
+| Fonction déclenchée | Lambda | Cloud Run functions | Runtime, retry, event source et idempotence |
+| Batch | AWS Batch | Batch / Cloud Run Jobs | Durée, files, accélérateurs et quotas |
+
+## GKE n’est pas EKS avec un autre logo
+
+GKE est très intégré à Cloud IAM, Artifact Registry, Cloud Logging/Monitoring et au modèle VPC natif. Autopilot déplace davantage d’opérations vers Google ; Standard laisse plus de contrôle. Le bon choix dépend du besoin de nodes personnalisés, DaemonSets, contraintes réseau, GPU et politique de responsabilité.
+
+## Cloud Run : un contrat applicatif
+
+Cloud Run sert des conteneurs stateless request-driven, scale potentiellement à zéro et peut s’intégrer à Eventarc, Pub/Sub et jobs. Il n’est pas une transposition exacte de Fargate : l’ingress, l’authentification IAM, la concurrence par instance, les timeouts et le cycle de vie doivent être conçus explicitement.
+
+```hcl
+resource "google_cloud_run_v2_service" "api" {
+  name     = "api"
+  location = "europe-west1"
+  template { containers { image = "europe-west1-docker.pkg.dev/acme/app/api:sha" } }
+}
+```
+
+<div class="recommendation"><strong>Recommandation.</strong> Utiliser un service account applicatif dédié par boundary de permissions et rendre l’appel Cloud Run privé par défaut ; exposer l’entrée via le load balancer, API Gateway ou IAP selon le cas.</div>
+
+## Exploitation et pièges
+
+- Gérer les images et instance templates comme des artefacts immuables ; éviter les modifications manuelles de VM.
+- Prévoir la reprise Spot VM, les quotas régionaux CPU/GPU et la capacité de crise.
+- Ne pas exposer une API Cloud Run avec `allUsers` par commodité lorsque l’authentification IAM ou IAP est attendue.
+- Évaluer GKE Autopilot avant de recopier des node groups, mais vérifier les contraintes de sécurité, ressources et coûts.

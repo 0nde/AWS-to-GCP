@@ -1,0 +1,41 @@
+---
+title: Parcours d’apprentissage et sources
+description: Parcours de validation, sources officielles et méthode de mise à jour.
+---
+
+## Parcours de 30 jours
+
+| Période | Objectif | Preuve de maîtrise |
+|---|---|---|
+| Jours 1–5 | Resource hierarchy, IAM, federation | Revue d’une policy effective et d’un flux impersonation |
+| Jours 6–10 | VPC global, Shared VPC, accès APIs | Design réseau avec Private Google Access/PSC justifiés |
+| Jours 11–16 | Compute, GKE, Cloud Run, données | ADR de choix de runtime et store |
+| Jours 17–22 | Sécurité, observabilité, IaC | Landing zone as code avec audit et WIF |
+| Jours 23–30 | FinOps, DR et gouvernance | Exercice de failover et estimation de coût BigQuery/egress |
+
+## Sources officielles prioritaires
+
+Toutes les sources ci-dessous sont vérifiées le **31/07/2026**. La date affichée par chaque documentation est celle de l’éditeur ; réouvrir la source avant une décision de production.
+
+<ul class="source-list">
+  <li><a href="https://cloud.google.com/architecture/landing-zones">Google Cloud — Landing zone design</a> — landing zone et resource hierarchy, revu 2026.</li>
+  <li><a href="https://cloud.google.com/iam/docs/resource-hierarchy-access-control">Google Cloud IAM — Resource hierarchy access control</a> — héritage des allow policies.</li>
+  <li><a href="https://cloud.google.com/iam/docs/policy-types">Google Cloud IAM — Policy types</a> — allow, deny et Principal Access Boundary.</li>
+  <li><a href="https://cloud.google.com/vpc/docs/vpc">Google Cloud VPC overview</a> — VPC global et subnets régionaux.</li>
+  <li><a href="https://cloud.google.com/vpc/docs/shared-vpc">Google Cloud Shared VPC</a> — host/service projects et délégation réseau.</li>
+  <li><a href="https://cloud.google.com/vpc/docs/private-google-access">Google Cloud Private Google Access</a> — accès privé aux APIs Google.</li>
+  <li><a href="https://cloud.google.com/vpc-service-controls/docs/overview">Google Cloud VPC Service Controls overview</a> — périmètres de service.</li>
+  <li><a href="https://cloud.google.com/docs/get-started/aws-azure-gcp-service-comparison">Google Cloud — Compare AWS and Azure services</a> — index de correspondances, dernière mise à jour connue : 03/12/2024.</li>
+  <li><a href="https://docs.aws.amazon.com/controltower/latest/userguide/aws-multi-account-landing-zone.html">AWS Control Tower — Multi-account strategy</a> — account et landing zone.</li>
+  <li><a href="https://docs.aws.amazon.com/app-mesh/latest/userguide/what-is-app-mesh.html">AWS App Mesh — End of support notice</a> — fin de support annoncée au 30/09/2026.</li>
+  <li><a href="https://cloud.google.com/managed-service-for-apache-kafka/docs/overview">Google Cloud Managed Service for Apache Kafka</a> — fonctionnalités et launch stages à revalider.</li>
+  <li><a href="https://cloud.google.com/release-notes">Google Cloud release notes</a> — évolutions et rollouts récents.</li>
+</ul>
+
+## Méthode de mise à jour éditoriale
+
+1. Mettre à jour la date de vérification dans les pages concernées.
+2. Consulter les release notes et la documentation du produit, pas seulement une table de correspondances.
+3. Marquer clairement GA, Preview, Pre-GA, dépréciation et disponibilité régionale.
+4. Exécuter `npm run check`, `npm test`, `npm run check:links`, `npm run build` puis les tests navigateur.
+5. Consigner dans le changelog la source, l’effet architectural et les sections modifiées.

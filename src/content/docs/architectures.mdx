@@ -1,0 +1,67 @@
+---
+title: Architectures comparées
+description: Quatre architectures complètes, comparées par conséquences plutôt que par logos.
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+## 1. Application web haute disponibilité
+
+<Mermaid chart={`flowchart LR
+  U[Utilisateurs] --> A[CloudFront + ALB]
+  A --> E[ASG multi-AZ]
+  E --> R[RDS Multi-AZ]
+  U --> G[Global external LB + Cloud Armor]
+  G --> C[Cloud Run ou MIG régional]
+  C --> Q[Cloud SQL HA / Spanner selon besoin]`} caption="AWS et GCP peuvent offrir une application HA, mais le point d’entrée global et le choix du data store déplacent les responsabilités." />
+
+- **AWS** : CloudFront/ALB, ASG multi-AZ, RDS, WAF, Route 53 pour le multi-région.
+- **GCP** : global external Application Load Balancer, Cloud Armor, Cloud Run ou MIG, Cloud SQL HA/Spanner, Cloud DNS ou LB global pour la stratégie régionale.
+- **À ne pas traduire** : Cloud Run n’est pas un ASG de conteneurs et Cloud SQL HA n’est pas un DR régional.
+- **Sécurité/opérations/coût** : IAM-invoker, service account applicatif, logs structurés, tests de failover ; contrôler egress, Cloud Run concurrency et coût base de données.
+
+## 2. Plateforme Kubernetes d’entreprise
+
+<Mermaid chart={`flowchart TB
+  I[IdP] --> GKE[GKE régional / Autopilot ou Standard]
+  AR[Artifact Registry] --> GKE
+  GKE --> SV[Shared VPC host project]
+  GKE --> O[Cloud Logging / Monitoring]
+  GKE --> P[Policy / admission controls]`} caption="GKE s’insère dans la fondation GCP : identité fédérée, registry, réseau Shared VPC et observabilité centrale." />
+
+- **AWS** : EKS, node groups/Fargate, VPC CNI, IRSA, ECR, ALB Controller, CloudWatch.
+- **GCP** : GKE Standard/Autopilot, Workload Identity, Artifact Registry, Shared VPC, Gateway/load balancing, Cloud Operations.
+- **À ne pas traduire** : choisir Autopilot avant de recréer node groups ; Workload Identity ne se réduit pas à IRSA.
+- **Sécurité/opérations/coût** : namespaces ne sont pas une frontière IAM complète ; séparer service accounts, contrôler admission/images, prévoir upgrades, quotas et egress.
+
+## 3. Serverless event-driven
+
+<Mermaid chart={`flowchart LR
+  E[Événement] --> EB[EventBridge]
+  EB --> L[Lambda]
+  L --> SQ[SQS / DLQ]
+  E --> EA[Eventarc]
+  EA --> CR[Cloud Run]
+  CR --> PS[Pub/Sub subscription / DLQ]
+  CT[Cloud Tasks] --> CR`} caption="Les primitives GCP séparent event routing, distribution, tâches HTTP et traitement ; choisir le contrat avant le service." />
+
+- **AWS** : EventBridge, Lambda, SQS/SNS, Step Functions, EventBridge Scheduler.
+- **GCP** : Eventarc, Cloud Run/functions, Pub/Sub, Cloud Tasks, Workflows, Cloud Scheduler.
+- **À ne pas traduire** : Pub/Sub ne devient pas une queue par consumer ; Cloud Tasks convient aux commandes HTTP régulées.
+- **Sécurité/opérations/coût** : authentifier les targets, rendre les consumers idempotents, tracer les événements, surveiller backlog/DLQ et rétention.
+
+## 4. Plateforme data et analytics
+
+<Mermaid chart={`flowchart LR
+  S[Sources] --> K[Kinesis / MSK]
+  K --> G[Glue / EMR]
+  G --> R[Redshift / S3]
+  S --> P[Pub/Sub / Kafka]
+  P --> D[Dataflow]
+  D --> B[BigQuery / Cloud Storage]
+  B --> L[Looker / Vertex AI]`} caption="Le modèle GCP privilégie souvent BigQuery + Dataflow, mais Dataproc et Kafka restent des choix ciblés." />
+
+- **AWS** : S3 data lake, Glue catalog/ETL, Athena/EMR, Redshift, Lake Formation, QuickSight/SageMaker.
+- **GCP** : Cloud Storage, Pub/Sub, Dataflow, BigQuery, Dataplex, Looker, Vertex AI.
+- **À ne pas traduire** : BigQuery ne doit pas être dimensionné comme un cluster Redshift ; gouvernance et coûts sont dataset/query-centric.
+- **Sécurité/opérations/coût** : gouverner locations et policy tags, borner scans, isoler projets, observer streaming lag et lineage, prévoir transfert inter-région.

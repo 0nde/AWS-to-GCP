@@ -1,0 +1,29 @@
+---
+title: FinOps et facturation
+description: Billing accounts, CUD, discounts automatiques, BigQuery et egress.
+---
+
+## Les unités de coût ne sont pas les mêmes
+
+Un Cloud Billing account finance des projets ; il n’est pas le projet ni un folder. Les budgets se définissent sur le billing et les filtres associés. L’export natif vers BigQuery est un avantage opérationnel majeur pour l’allocation, les anomalies et le rapprochement d’usage.
+
+| Réflexe AWS | Translation GCP à vérifier |
+|---|---|
+| Linked accounts / consolidated billing | Projets liés à un Cloud Billing account |
+| RI et Savings Plans | Committed use discounts, éligibilité et portée propres |
+| Pas de remise automatique comparable | Sustained use discounts sur usages éligibles |
+| CUR | Cloud Billing export vers BigQuery |
+| Tags coûts | Labels, tags et hiérarchie de projets |
+
+## Pièges de chiffrage
+
+- Sous-estimer BigQuery : bytes scanned, slots/réservations, streaming et stockage long terme ont des leviers distincts.
+- Importer mécaniquement un portefeuille Savings Plans en CUD sans profil stable et sans objectif de flexibilité.
+- Oublier le réseau : inter-région, Internet egress, PSC, NAT et flux data peuvent dominer le coût.
+- Considérer un budget comme un kill switch ; c’est une alerte, pas une limite de dépense universelle.
+
+<div class="recommendation"><strong>Cadence.</strong> Dès la fondation, exporter la facturation vers BigQuery, imposer labels de coût utiles, définir budgets par domaine et analyser mensuellement engagement, egress et workloads serverless.</div>
+
+## Quotas comme donnée FinOps et résilience
+
+Les quotas protègent la plateforme mais peuvent bloquer une reprise, un scale-out ou une migration. Suivre les quotas dans les régions de production et de secours ; demander les augmentations avant l’incident, pas au moment du failover.

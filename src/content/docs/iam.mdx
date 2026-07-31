@@ -1,0 +1,48 @@
+---
+title: IAM et identités
+description: Principals, héritage, service accounts, federation et impersonation.
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+## Modèle d’autorisation
+
+AWS combine identity policies, resource policies, trust policies, session policies, permission boundaries et SCP. GCP évalue les allow policies, deny policies et Principal Access Boundary (PAB) pertinentes. Les allow bindings peuvent être posés à l’Organization, folder, projet ou ressource et sont hérités.
+
+<Mermaid chart={`sequenceDiagram
+  participant U as Ingénieur / CI
+  participant I as IdP ou GitHub OIDC
+  participant W as Workload Identity Federation
+  participant SA as Service account GCP
+  participant API as API GCP
+  U->>I: Authentification courte
+  I->>W: Jeton fédéré
+  W->>SA: Impersonation autorisée
+  SA->>API: Access token court + IAM check`} caption="Flux cible : fédération puis impersonation, sans clé JSON longue durée." />
+
+## Identités humaines et machines
+
+Les humains doivent entrer via Google groups synchronisés depuis l’IdP (Google Workspace, Cloud Identity, Entra ID ou SAML/OIDC). Les workloads utilisent un service account dédié, avec Workload Identity Federation pour CI externe et Workload Identity sur GKE. Éviter les clés de service account, car elles échappent facilement à la rotation, au périmètre et à la révocation centralisée.
+
+```json
+{
+  "role": "roles/iam.serviceAccountTokenCreator",
+  "members": ["principalSet://iam.googleapis.com/projects/123/locations/global/workloadIdentityPools/github/attribute.repository/acme/api"]
+}
+```
+
+Cet exemple est intentionnellement étroit : dans une implémentation réelle, borner aussi organisation, repository, branche ou environnement et le service account cible.
+
+<div class="risk"><strong>Piège critique.</strong> Le rôle Service Account Token Creator ou l’actAs correspondant peut devenir un chemin d’escalade. Toute délégation d’impersonation doit être revue comme une relation de confiance équivalente à AssumeRole.</div>
+
+## Deny et Principal Access Boundary
+
+Les deny policies empêchent certaines permissions supportées, avec exceptions explicites possibles. Les PAB bornent les ressources auxquelles un principal reste éligible, même si un allow lui est accordé ; elles ne donnent aucune permission. Ce n’est donc pas une traduction exacte des permission boundaries AWS. [Types de policies IAM](https://cloud.google.com/iam/docs/policy-types)
+
+## Checklist de revue
+
+- Quels bindings sont hérités de l’Organization et des folders ?
+- Quelles identities peuvent impersonate chaque service account ?
+- Les service agents requis par les APIs sont-ils préservés dans les deny rules ?
+- Les secrets et credentials statiques ont-ils une date d’expiration, une ownership et un plan de retrait ?
+- Les rôles primitifs Owner/Editor/Viewer sont-ils absents des workloads et exceptionnels pour les humains ?

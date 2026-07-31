@@ -1,0 +1,29 @@
+{
+  "name": "aws-to-gcp-mental-model",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "node --test tests/content.test.mjs",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "pdf": "node scripts/export-pdf.mjs"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^7.0.5",
+    "@astrojs/starlight": "^0.41.5",
+    "astro": "^7.1.6",
+    "mermaid": "^11.12.3"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@astrojs/check": "^0.9.4",
+    "@playwright/test": "^1.62.1",
+    "typescript": "^5.9.3"
+  }
+}

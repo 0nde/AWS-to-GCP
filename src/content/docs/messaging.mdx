@@ -1,0 +1,33 @@
+---
+title: Messaging et architectures event-driven
+description: Pub/Sub, Eventarc, Tasks, Scheduler, Dataflow et Kafka sans confusion SQS/SNS.
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+## Le modèle Pub/Sub
+
+Pub/Sub sépare le topic des subscriptions. Plusieurs consumers peuvent lire le même flux via leurs subscriptions ; pull, push, dead-letter policy, rétention et replay sont des décisions de subscription. C’est plus proche d’un bus de distribution que d’une queue SQS isolée.
+
+<Mermaid chart={`flowchart LR
+  P[Producer] --> T[Pub/Sub topic]
+  T --> S1[Pull subscription : Dataflow]
+  T --> S2[Push subscription : Cloud Run]
+  S2 --> DLQ[Dead-letter topic]
+  E[Eventarc] --> CR[Cloud Run target]`} caption="Un topic Pub/Sub peut alimenter plusieurs subscriptions ; Eventarc route les événements de plateforme vers les cibles." />
+
+## Choisir la primitive par intention
+
+| Intention | AWS | GCP | Point de vigilance |
+|---|---|---|---|
+| Queue de commandes HTTP avec débit contrôlé | SQS | Cloud Tasks | Idempotence et auth de la cible |
+| Fan-out d’événements | SNS / EventBridge | Pub/Sub / Eventarc | Source, contrat CloudEvent et replay |
+| Traitement streaming | Kinesis | Pub/Sub + Dataflow | Fenêtrage, watermark, backpressure |
+| Kafka compatible | MSK | Managed Service for Apache Kafka | Launch stage, topologie et limites |
+| Planification | EventBridge Scheduler | Cloud Scheduler | Retrys métier séparés du déclenchement |
+
+## Delivery semantics
+
+Concevoir au moins-once par défaut : consumer idempotent, clé de déduplication, DLQ observable et procédure de replay. L’ordering n’est jamais une décoration : il restreint le parallélisme et doit être appliqué seulement à la clé qui le requiert.
+
+<div class="volatile"><strong>À revalider.</strong> Google Cloud Managed Service for Apache Kafka évolue rapidement ; son overview indique des fonctionnalités Pre-GA pour le schema registry et des contraintes de clusters trois zones. Évaluer son statut et ses limitations au moment du choix. [Overview Kafka](https://cloud.google.com/managed-service-for-apache-kafka/docs/overview)</div>

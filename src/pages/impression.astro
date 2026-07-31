@@ -1,0 +1,16 @@
+---
+import { getCollection, render } from 'astro:content';
+const entries = await getCollection('docs');
+const chapters = await Promise.all(entries.filter((entry) => entry.id !== 'index').map(async (entry) => ({ entry, anchor: entry.id.replace(/\.mdx$/, ''), Content: (await render(entry)).Content })));
+---
+<!doctype html>
+<html lang="fr">
+  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>AWS → GCP — version imprimable</title><link rel="stylesheet" href="/print.css" /></head>
+  <body>
+    <main>
+      <header class="cover"><p>AWS → GCP</p><h1>Le modèle mental GCP pour architectes AWS</h1><p>Version imprimable — vérifiée le 31 juillet 2026</p><button onclick="window.print()">Imprimer ou enregistrer en PDF</button></header>
+      <section><h2>Sommaire</h2><ol>{chapters.map(({ entry, anchor }) => <li><a href={`#${anchor}`}>{entry.data.title}</a></li>)}</ol></section>
+      {chapters.map(({ anchor, Content }) => <article id={anchor}><p class="chapter">Chapitre</p><Content /></article>)}
+    </main>
+  </body>
+</html>

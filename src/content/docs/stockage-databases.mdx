@@ -1,0 +1,38 @@
+---
+title: Stockage et bases de données
+description: Choisir les modèles de données GCP sans analogies trompeuses.
+---
+
+## Les comparaisons qui tiennent, et celles qui cassent
+
+| AWS | GCP le plus proche | Ce qui change réellement |
+|---|---|---|
+| S3 | Cloud Storage | Gouvernance bucket, UBLA, classes et policies à concevoir selon GCP |
+| EBS | Persistent Disk / Hyperdisk | Portée et profils de performance spécifiques |
+| EFS | Filestore | Offre NFS, topologies et capacité différentes |
+| RDS | Cloud SQL | HA régionale et DR multi-région à distinguer |
+| Aurora PostgreSQL | AlloyDB | Architecture et options opérationnelles différentes |
+| DynamoDB | Firestore ou Bigtable | Document store vs wide-column : aucune migration aveugle |
+| Redshift | BigQuery | Compute séparé, serverless et modèles de prix différents |
+| — | Spanner | SQL distribué fortement cohérent, sans équivalent direct AWS |
+
+## Spanner : le concept à étudier, pas le service à renommer
+
+Spanner associe SQL relationnel, transactions fortement cohérentes et réplication distribuée. Il convient aux systèmes transactionnels qui ont réellement besoin de cette combinaison ; il impose aussi une discipline de data modeling, de clés et de coût. Le choisir parce que « global » ou « scalable » est insuffisant.
+
+<div class="risk"><strong>Piège DynamoDB.</strong> Firestore optimise un modèle document et Bigtable un modèle wide-column à très haut débit. Un single-table design DynamoDB doit être re-questionné à partir des patterns d’accès, de la consistance, des index et du modèle de transaction visé.</div>
+
+## Disponibilité, réplication et coût
+
+HA zonale, réplication régionale et DR multi-région ne sont pas synonymes. Pour chaque store, documenter : portée de l’instance/bucket, RPO/RTO, type de réplication, restauration testée, quotas et coût de lectures, writes, stockage et egress.
+
+<div class="details-only">
+
+## Checklist de migration
+
+- Lister les invariants transactionnels et le modèle de consistance réellement requis.
+- Recréer les index à partir des requêtes, pas des tables AWS existantes.
+- Tester sauvegarde, PITR, restauration dans un projet séparé et failover de dépendances.
+- Chiffrer avec CMEK seulement quand l’objectif (contrôle de clé, conformité, révocation) le justifie.
+
+</div>

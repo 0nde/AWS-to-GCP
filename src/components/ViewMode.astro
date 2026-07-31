@@ -1,0 +1,10 @@
+<div class="view-switch" data-view-switch>
+  <span>Profondeur :</span><button type="button" aria-pressed="true" data-mode="synthetic">Synthèse</button><button type="button" aria-pressed="false" data-mode="detailed">Détaillée</button>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-view-switch]').forEach((switcher) => {
+    const update = (mode: string) => { document.querySelectorAll<HTMLElement>('.details-only').forEach((node) => node.hidden = mode !== 'detailed'); switcher.querySelectorAll<HTMLButtonElement>('button').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.mode === mode))); localStorage.setItem('aws-gcp-view', mode); };
+    switcher.querySelectorAll<HTMLButtonElement>('button').forEach((button) => button.addEventListener('click', () => update(button.dataset.mode ?? 'synthetic')));
+    update(localStorage.getItem('aws-gcp-view') || 'synthetic');
+  });
+</script>

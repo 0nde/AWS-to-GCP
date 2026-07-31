@@ -1,0 +1,47 @@
+---
+title: "AWS → GCP : le modèle mental qui évite les faux amis"
+description: Documentation de référence GCP pour architectes AWS expérimentés.
+sidebar:
+  badge: Nouveau
+---
+
+<div class="hero-card">
+
+## Le changement n’est pas une table de services
+
+GCP devient nettement plus lisible quand on le voit comme une plateforme dont la **hiérarchie de ressources, l’identité et le réseau global** structurent les services. AWS privilégie davantage l’account comme unité de conception ; GCP fait du projet un conteneur dans une hiérarchie où les politiques et les rôles héritent.
+
+</div>
+
+## Les 15 différences à ancrer d’abord
+
+1. Un VPC GCP est global ; ses subnets sont régionaux. Un VPC AWS est régional.
+2. Le projet GCP n’est pas un account AWS : ses frontières IAM, réseau, quotas et facturation ne coïncident pas toujours.
+3. Les permissions GCP héritent de l’Organization vers les folders, projets et ressources ; analyser seulement le projet est insuffisant.
+4. Les service accounts sont des principals, pas des rôles AWS avec clés à distribuer : privilégier fédération et impersonation.
+5. Shared VPC sépare ownership réseau (host project) et workloads (service projects).
+6. Les firewall rules ciblent souvent des service accounts ou tags réseau, non des security groups attachables.
+7. Private Google Access, Private Service Connect et Service Networking répondent à des besoins distincts d’accès privé.
+8. GKE Autopilot et Cloud Run font des choix d’exploitation que Fargate/EKS ne recouvrent qu’approximativement.
+9. BigQuery est un entrepôt serverless à compute séparé : ne pas le tuner comme Redshift.
+10. Spanner est une primitive SQL distribuée globalement, non un « RDS qui scale ».
+11. Pub/Sub est topic + subscriptions, avec replay et pull/push : ce n’est pas une simple SQS managée.
+12. VPC Service Controls agit autour d’APIs pour limiter l’exfiltration ; ce n’est ni un WAF ni un firewall réseau.
+13. Organization Policy, IAM deny et Principal Access Boundary ont des rôles complémentaires, sans être des SCP interchangeables.
+14. Les discounts automatiques et CUD GCP modifient le raisonnement FinOps ; les egress et requêtes BigQuery restent structurants.
+15. Le load balancing global anycast et de nombreux services globaux déplacent la frontière du design de résilience.
+
+<div class="risk"><strong>Risque prioritaire.</strong> Les incidents AWS→GCP les plus coûteux viennent rarement d’un mauvais mapping EC2/Compute Engine. Ils viennent d’un héritage IAM ignoré, d’une clé de service account longue durée, d’un Shared VPC mal délégué, d’une API privée mal comprise ou d’une estimation BigQuery incomplète.</div>
+
+## Parcours recommandé
+
+1. Lire [le modèle mental](/modele-mental/) puis [organisation](/organisation/), [IAM](/iam/) et [réseau](/reseau/).
+2. Choisir le runtime dans [compute](/compute/) et les stores dans [stockage](/stockage-databases/) selon les contraintes, pas les noms AWS.
+3. Consolider avec [sécurité](/securite/), [gouvernance](/gouvernance/) et [FinOps](/finops/).
+4. Terminer par les [architectures comparées](/architectures/) et les [anti-patterns](/anti-patterns/).
+
+## Statut documentaire
+
+Contenu vérifié le **31/07/2026**. Les services, launch stages, quotas, tarifs et disponibilités régionales évoluent : chaque chapitre distingue les faits stables des points à revalider. Les sources officielles sont centralisées dans [Parcours d’apprentissage et sources](/apprentissage-sources/).
+
+> Ce guide ne désigne pas un gagnant. Il décrit les conséquences de modèles différents pour éviter les migrations mécaniques.

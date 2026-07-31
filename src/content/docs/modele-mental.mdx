@@ -1,0 +1,42 @@
+---
+title: Modèle mental GCP pour un expert AWS
+description: Les unités de raisonnement à remplacer avant de comparer les services.
+---
+
+import ViewMode from '../../components/ViewMode.astro';
+
+<ViewMode />
+
+## Le basculement principal
+
+Dans AWS, l’account est très souvent l’unité de sécurité, de facturation, de quotas et de blast radius autour de laquelle on assemble VPC, IAM, logging et workloads. Dans GCP, l’**Organization → Folder → Project → Resource** est une hiérarchie active : les allow policies héritent, les Organization Policies se propagent et les équipes peuvent partager un réseau tout en gardant leurs ressources dans des projets distincts.
+
+| Réflexe AWS | Réflexe GCP à adopter | Conséquence |
+|---|---|---|
+| Créer un account par frontière forte | Modéliser d’abord organization, folders, projets et host/service projects | Un projet seul ne garantit pas toutes les isolations |
+| Attacher des policies à des roles locaux | Évaluer les bindings effectifs sur toute la hiérarchie | Le least privilege exige une lecture ascendante |
+| Créer un VPC par région | Penser VPC global, subnets régionaux | La connectivité inter-région change de forme |
+| Chercher un service équivalent | Identifier le modèle de responsabilité | Un mapping 1:1 masque souvent un mauvais design |
+
+<div class="fact"><strong>Fait documenté.</strong> Les allow policies GCP héritent depuis les ancêtres ; la policy effective est l’union des allow policies applicables, avant prise en compte des deny et boundaries. [Documentation IAM](https://cloud.google.com/iam/docs/resource-hierarchy-access-control)</div>
+
+<div class="details-only">
+
+## Platform-centric ne veut pas dire monolithique
+
+Les APIs GCP, IAM, audit logs, Cloud Asset Inventory, billing et Resource Manager donnent un langage relativement homogène aux services. Cela simplifie la plateforme quand les projets sont correctement fondés. En contrepartie, activer une API, gérer les service agents, les quotas, les APIs privées et les bindings hérités devient partie intégrante de l’architecture.
+
+Le modèle est donc : **fondation centrale → projets délégués → APIs et services consommés sous garde-fous**. Ce n’est pas une centralisation absolue : les équipes applicatives gardent leur autonomie dans les service projects, notamment avec Shared VPC.
+
+</div>
+
+## Questions de revue à poser
+
+- À quel niveau vit chaque guardrail : Organization Policy, firewall policy, IAM deny, PAB, IAM allow ou code applicatif ?
+- Le projet héberge-t-il des ressources, un réseau, une facturation, ou les quatre ?
+- Quelle identité humaine ou de workload exécute réellement l’appel API ?
+- Quel composant est global, régional ou zonal, et quelle hypothèse de panne cette portée implique-t-elle ?
+
+## À retenir
+
+Ne commencez pas par « quel est l’équivalent GCP de ce service AWS ? ». Commencez par : **quelle frontière, quelle identité, quelle portée et quel plan de contrôle sont impliqués ?**

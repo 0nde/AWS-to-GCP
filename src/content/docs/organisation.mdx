@@ -1,0 +1,62 @@
+---
+title: Organisation, projets et Landing Zones
+description: Pourquoi un projet GCP n’est pas un compte AWS, et comment structurer une fondation.
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+## Modèles comparés
+
+AWS Organizations agrège des accounts sous des OUs ; les SCP et Control Tower structurent la gouvernance. GCP relie les projets à une Organization, éventuellement via des folders, et fait hériter IAM et Organization Policies. Un projet porte des ressources, des quotas et une association à un Cloud Billing account, mais peut consommer un réseau détenu ailleurs.
+
+<Mermaid chart={`flowchart TB
+  A[AWS Organization] --> B[OU Production]
+  B --> C[Account application]
+  B --> D[Account réseau]
+  E[GCP Organization] --> F[Folder Production]
+  F --> G[Service project application]
+  F --> H[Host project réseau Shared VPC]`} caption="Deux hiérarchies : account centré côté AWS, projets délégués et réseau partagé côté GCP." />
+
+## Arborescence GCP d’entreprise recommandée
+
+```text
+Organization
+├── Platform
+│   ├── Security (projects SCC, logs, KMS)
+│   ├── Networking (host projects Shared VPC)
+│   └── Identity / CI-CD
+├── Production
+│   ├── domaine-a-prod (service projects)
+│   └── domaine-b-prod
+├── Non-production
+│   ├── domaine-a-dev
+│   └── sandbox
+└── Restricted / regulated
+```
+
+Le folder exprime une délégation et un niveau de garde-fous, pas seulement un classement visuel. Garder les projets de plateforme distincts des projets de workload facilite la séparation des rôles et des coûts.
+
+<div class="recommendation"><strong>Recommandation.</strong> Provisionner chaque projet par une Project Factory Terraform : billing, APIs autorisées, owners humains via groupes, logs, labels, budget, liaison Shared VPC et policies dès la création.</div>
+
+## Landing Zones
+
+Control Tower fournit un workflow et des comptes partagés fortement prescriptifs. La landing zone GCP est une fondation modulaire construite avec Resource Manager, Cloud Identity/IdP, IAM, Organization Policies, réseau, logging et IaC. Google documente explicitement cette modularité : une landing zone n’est pas une zone GCP. [Landing zone GCP](https://cloud.google.com/architecture/landing-zones)
+
+<Mermaid chart={`flowchart LR
+  IdP[IdP entreprise] --> IAM[Cloud Identity / IAM]
+  Org[Organization Policies] --> P[Project Factory]
+  P --> N[Host project réseau]
+  P --> W[Service projects]
+  W --> L[Logs centralisés]
+  N --> W`} caption="Fondation GCP : identité, guardrails et factory précèdent les workloads." />
+
+## Erreurs AWS fréquentes
+
+- Un projet par environnement mais un VPC local par projet, sans stratégie Shared VPC ni connectivité.
+- Un unique projet « shared-services » où cohabitent logs, sécurité, CI/CD, réseau et workloads.
+- Laisser les créateurs de projets choisir leurs APIs, billing accounts et rôles Owner.
+- Utiliser les labels comme mécanisme de prévention ; seuls tags/policies/IAM imposent réellement des contraintes.
+
+## Limites à revalider
+
+Quotas de projets, capacités de folders, contraintes d’organisation, disponibilité de Control Plane et offres régulées sont dépendants du contrat et de la date. Documenter les quotas réellement consommés, pas seulement les valeurs par défaut.

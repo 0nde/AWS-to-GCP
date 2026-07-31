@@ -1,0 +1,15 @@
+---
+interface Props { chart: string; caption: string; }
+const { chart, caption } = Astro.props;
+---
+<figure class="mermaid-figure">
+  <pre class="mermaid">{chart}</pre>
+  <figcaption>{caption}</figcaption>
+</figure>
+<script>
+  import mermaid from 'mermaid';
+  mermaid.initialize({ startOnLoad: false, theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'default', securityLevel: 'strict' });
+  const render = () => mermaid.run({ nodes: document.querySelectorAll('.mermaid:not([data-processed])') });
+  render();
+  document.addEventListener('astro:after-swap', render);
+</script>

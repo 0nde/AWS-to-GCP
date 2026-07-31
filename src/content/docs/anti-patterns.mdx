@@ -1,0 +1,32 @@
+---
+title: Anti-patterns et pièges pour un expert AWS
+description: Ce qu’il faut désapprendre ou revalider avant une architecture GCP de production.
+---
+
+## Les 12 anti-patterns qui reviennent
+
+1. **Un projet = un account AWS.** Vérifier IAM hérité, Shared VPC, billing et quotas au lieu de supposer une frontière unique.
+2. **Une clé de service account pour chaque automatisation.** Préférer federation et impersonation ; inventorier puis retirer les clés existantes.
+3. **Un VPC par région.** Partir du VPC global et de l’adressage régional ; créer des VPC distincts seulement pour une frontière explicitée.
+4. **Security Groups traduits en firewall rules.** Repenser les targets par identity/service account et les policies hiérarchiques.
+5. **SCP = Organization Policy.** Combiner constraints, IAM deny, PAB et détection selon l’objectif.
+6. **Cloud Run = Fargate/Lambda indifféremment.** Valider request model, ingress, timeout, concurrence, identité et jobs.
+7. **Firestore = DynamoDB.** Repartir des patterns d’accès et du modèle document ; considérer Bigtable quand le besoin est wide-column.
+8. **BigQuery = Redshift sans cluster.** Concevoir partition, clustering, gouvernance, slots et budgets de scan.
+9. **Pub/Sub = SQS.** Créer une subscription par consumer et rendre le consumer idempotent.
+10. **VPC SC = firewall.** Définir services, périmètre, règles ingress/egress et parcours administratifs.
+11. **HA régionale = DR.** Tester perte de région, restauration, IAM, quotas et données.
+12. **Labels = enforcement.** Utiliser tags/policies/IAM pour imposer ; labels pour décrire et allouer.
+
+## Revue d’architecture express
+
+| Question | Signal d’alerte |
+|---|---|
+| Qui peut impersonate ce service account ? | Réponse inconnue ou rôle Token Creator large |
+| Où est la policy effective ? | Seulement la page IAM du projet a été lue |
+| Comment le workload appelle les APIs privées ? | « Il a Internet » |
+| Quelle est la scope de panne de la donnée ? | « C’est managed » |
+| Qu’est-ce qui borne le coût BigQuery/egress ? | « On verra dans la facture » |
+| Quel guardrail empêche cette configuration ? | Un document, mais aucun contrôle appliqué |
+
+<div class="recommendation"><strong>À désapprendre.</strong> L’équivalence de nom rassure mais ne prouve rien. Une architecture GCP solide est une architecture dont les frontières sont explicites, testées et observables.</div>

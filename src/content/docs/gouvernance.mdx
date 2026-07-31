@@ -1,0 +1,27 @@
+---
+title: Gouvernance et conformité
+description: "Guardrails GCP à grande échelle : Resource Manager, policies, tags et inventory."
+---
+
+## Empiler les garde-fous au bon niveau
+
+| Besoin | Primitive GCP | Exemple |
+|---|---|---|
+| Empêcher une configuration | Organization Policy | Désactiver IP publiques ou restreindre emplacements |
+| Restreindre une action API | IAM deny policy | Empêcher une permission supportée, avec exceptions |
+| Borner les ressources accessibles | Principal Access Boundary | Limiter un principal à son organisation/projet |
+| Contrôler le trafic | Hierarchical firewall policy | Bloquer egress interdit au niveau organization |
+| Inventorier et rechercher | Cloud Asset Inventory | Vérifier exposition et dérive multi-projets |
+| Normaliser le provisioning | Project Factory + Terraform | APIs, budget, labels, logs et rôles initiaux |
+
+Organization Policy n’est pas une SCP, même si les deux portent des garde-fous préventifs. Les contraintes sont typées par service et n’analysent pas toutes les actions IAM. Vérifier la contrainte, son champ d’application, son héritage et ses exceptions plutôt que d’inférer son comportement depuis AWS.
+
+## Tags et labels
+
+Les labels sont principalement des métadonnées d’inventaire, de coût et d’automatisation. Les tags GCP peuvent être utilisés dans certains contrôles IAM et Organization Policies. Maintenir une taxonomie limitée, obligatoire dans la factory, avec owner et contrôle de qualité ; ne pas confondre une étiquette déclarative avec une protection effective.
+
+<div class="recommendation"><strong>Pattern.</strong> Mettre les obligations universelles au niveau Organization, les variations de risque dans les folders, les exceptions temporaires au projet avec expiration et owner, puis vérifier périodiquement leur suppression.</div>
+
+## Conformité
+
+Relier chaque exigence à un contrôle technique, une preuve (audit log, asset query, export), un owner et une fréquence. Un dashboard de findings sans processus de remediation et de preuve d’exception n’est pas une gouvernance.

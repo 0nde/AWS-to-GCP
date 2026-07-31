@@ -1,0 +1,30 @@
+---
+title: Observabilité et opérations
+description: Logs, métriques, traces, audit, inventory et opérations multi-projets.
+---
+
+## Le modèle opérationnel GCP
+
+Cloud Logging collecte des entrées structurées et les route avec Log Router vers des buckets, BigQuery, Pub/Sub ou destinations externes. Cloud Monitoring traite métriques, dashboards, alerting et scopes ; Cloud Audit Logs distingue Admin Activity, Data Access, System Event et Policy Denied. Cloud Asset Inventory répond à l’inventaire, pas à l’ensemble des règles AWS Config.
+
+| AWS | GCP | Point à vérifier |
+|---|---|---|
+| CloudWatch Logs | Cloud Logging | Rétention, sinks, exclusions et coûts d’ingestion |
+| CloudWatch Metrics | Cloud Monitoring | Labels, cardinalité, métriques log-based |
+| CloudTrail | Cloud Audit Logs | Activation et coût des Data Access logs |
+| AWS Config | Cloud Asset Inventory + policies | Couverture de conformité à compléter |
+| X-Ray | Cloud Trace / OpenTelemetry | Propagation du contexte |
+| Systems Manager | VM Manager / OS Config | Couverture VM et opérations attendues |
+
+## Architecture de logs de référence
+
+- Configurer les audit logs requis au niveau Organization et les exporter dans un projet de sécurité distinct.
+- Définir des log buckets par objectif et durée ; router vers SIEM ou BigQuery sans exporter aveuglément tous les logs.
+- Instrumenter les services avec champs structurés : service, environnement, version, trace id, principal, résultat.
+- Créer SLO, alertes orientées symptôme et runbooks avec owner, pas seulement des alarmes CPU.
+
+<div class="risk"><strong>Coût et sécurité vont ensemble.</strong> Une exclusion de logs peut casser une enquête ; une rétention infinie ou une cardinalité non maîtrisée peut faire exploser le coût. Toute exception doit avoir owner, durée et signal alternatif.</div>
+
+## Debugging multi-projets
+
+Lors d’un incident, corréler le projet ressource, le projet réseau Shared VPC, le service account, la trace, les routes/sinks et la policy effective. Le principal piège est d’ouvrir une console de projet et de conclure que l’absence locale de rôle, de log ou de réseau implique l’absence globale.

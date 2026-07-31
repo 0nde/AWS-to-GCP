@@ -1,0 +1,46 @@
+---
+title: "Réseau : VPC global, Shared VPC et services privés"
+description: Les différences réseau qui modifient réellement les architectures.
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+## VPC global, subnets régionaux
+
+Le VPC AWS est régional et contient des subnets zonaux. Le VPC GCP est une ressource globale contenant des subnets régionaux. Cette différence influence l’adressage, la connectivité inter-région, le DNS et le placement des services. Un subnet ne devient pas global : Compute Engine, GKE et la plupart des endpoints y conservent une portée régionale.
+
+## Hub-and-spoke : deux façons de raisonner
+
+<Mermaid chart={`flowchart LR
+  subgraph AWS
+    TGW[Transit Gateway] --- VA[VPC app eu-west-1]
+    TGW --- VB[VPC app us-east-1]
+  end
+  subgraph GCP
+    HV[Host project / VPC global] --- SA[Service project A]
+    HV --- SB[Service project B]
+    HV --- ON[Cloud VPN / Interconnect]
+  end`} caption="AWS centralise souvent des VPC régionaux via Transit Gateway ; GCP peut déléguer plusieurs service projects à un VPC global Shared VPC." />
+
+Shared VPC crée un host project, propriétaire des subnets, routes et firewall policies, et des service projects où les équipes créent leurs resources. Il ne faut pas le réduire à du VPC sharing AWS : c’est un mécanisme de délégation d’administration réseau très structurant. [Shared VPC](https://cloud.google.com/vpc/docs/shared-vpc)
+
+## Firewalls et routage
+
+Les VPC firewall rules GCP sont stateful et peuvent cibler des service accounts ou network tags. Les hierarchical firewall policies ajoutent des garde-fous organisationnels. Il n’existe pas une paire exacte Security Group + NACL : définir explicitement la stratégie de priorité, de target et de centralisation.
+
+<div class="recommendation"><strong>Recommandation.</strong> Cibler les règles d’egress sensibles avec des service accounts lorsque possible : le contrôle suit l’identité du workload plutôt qu’une taxonomie de tags fragile.</div>
+
+## APIs et services privés : ne pas confondre
+
+| Besoin | GCP | Erreur de translation |
+|---|---|---|
+| Une VM privée appelle des APIs Google | Private Google Access | Le traiter comme un endpoint PrivateLink par service |
+| Consommer un managed service via IP privée | Private Service Connect | Oublier accept lists, IAM, org policy et firewall |
+| Allouer une plage à certains services managés | Private services access / Service Networking | Le confondre avec PSC |
+| Egress sans IP publique VM | Cloud NAT | Dimensionner une NAT Gateway par subnet |
+
+## Load balancing et connectivité
+
+Les load balancers externes globaux GCP utilisent l’edge anycast selon l’édition et le type. Cloud VPN HA, Cloud Router et Cloud Interconnect s’appuient sur BGP ; valider le dynamic routing mode et la portée de routes avant de transposer une architecture Direct Connect/TGW.
+
+<div class="risk"><strong>Piège réseau.</strong> Les APIs Google privées, le DNS, les VIP restricted/private et VPC Service Controls forment un système. Une simple route vers Internet ne satisfait ni les objectifs d’exfiltration ni ceux d’accès privé.</div>

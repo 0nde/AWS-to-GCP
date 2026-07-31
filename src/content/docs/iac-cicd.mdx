@@ -1,0 +1,36 @@
+---
+title: Infrastructure as Code et CI/CD
+description: Terraform, Infrastructure Manager, Cloud Build, Cloud Deploy et fédération sans secrets.
+---
+
+## Positionnement des outils
+
+Terraform est généralement le socle multi-projets le plus pratique pour GCP, avec état distant protégé et modules de fondation. Infrastructure Manager exécute des configurations Terraform managées par GCP. Config Connector rend les ressources GCP pilotables depuis Kubernetes, ce qui convient à des équipes GitOps mais ne doit pas rendre Kubernetes propriétaire par défaut de toute la fondation.
+
+## Pipeline cible
+
+```text
+GitHub Actions / Cloud Build
+  → OIDC Workload Identity Federation
+  → service account de plan ou déploiement
+  → validation policy + terraform plan
+  → approbation de promotion
+  → apply dans le projet cible
+  → audit logs, provenance et alerting
+```
+
+<div class="recommendation"><strong>Règle de base.</strong> Aucun secret JSON de service account dans GitHub, un runner ou un gestionnaire de secrets CI. Utiliser WIF avec un mapping et des conditions limités au repository, à la branche ou à l’environnement attendus.</div>
+
+## États et multi-projets
+
+Séparer les states par couche de responsabilité : bootstrap Organization/billing, réseau host project, security/logging, projects de workload et applications. Éviter un state monolithique qui exige des permissions Owner partout. Protéger le bucket de state, activer versioning, contrôler l’accès et prévoir la récupération.
+
+## Promotions et drift
+
+La promotion est un changement d’artefact et de configuration gouverné, non un simple `apply` sur un autre projet. Exiger tests, approbation selon risque, journalisation, politiques et rollback. Détecter le drift par plans planifiés et inventaire ; ne « corriger » pas une dérive sans identifier son propriétaire opérationnel.
+
+## Pièges
+
+- Réutiliser le même service account omnipotent pour bootstrap et déploiements applicatifs.
+- Autoriser des APIs ou rôles dans le pipeline sans les contraindre par Organization Policy.
+- Croire que Terraform garantit l’absence de changement hors code.

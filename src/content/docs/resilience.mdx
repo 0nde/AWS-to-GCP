@@ -1,0 +1,32 @@
+---
+title: Disponibilité, résilience et disaster recovery
+description: Concevoir par portée de panne plutôt que transposer Multi-AZ.
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+## Portée de panne avant pattern
+
+Définir l’objectif de disponibilité par dépendance : zone, région, control plane, identité, réseau, quota, API externe et données. « Multi-AZ » n’est pas un design complet ; une Cloud SQL HA régionale ou un MIG multi-zone protège une panne zonale, pas forcément un sinistre régional.
+
+<Mermaid chart={`flowchart TB
+  G[Global external load balancer] --> R1[Service régional europe-west1]
+  G --> R2[Service régional europe-north1]
+  R1 --> D1[Store primaire / réplication]
+  R2 --> D2[Store secondaire / réplication]
+  M[Monitoring + runbook] --> G`} caption="Le load balancing global ne remplace ni la réplication des données, ni les tests de failover, ni la capacité de quota dans la région de secours." />
+
+## Patterns comparés
+
+| Objectif | AWS | GCP | Décision irréductible |
+|---|---|---|---|
+| Panne zonale applicative | ALB + ASG multi-AZ | LB + MIG multi-zone / GKE régional | Health checks, capacité et dépendances stateful |
+| Panne régionale | Route 53/GA + région secondaire | Global LB / Cloud DNS + région secondaire | Réplication data et stratégie de promotion |
+| Base HA | RDS Multi-AZ | Cloud SQL HA régional | RPO/RTO et scopes réellement protégés |
+| Reprise Kafka | MSK multi-AZ + réplication | Deux clusters régionaux + MirrorMaker | Réplication cross-region et tests |
+
+<div class="risk"><strong>Anti-pattern.</strong> Déclarer un service « global » comme solution DR. Le frontend peut être global, tandis que données, quotas, IAM dependencies ou backend restent régionaux.</div>
+
+## Validation DR
+
+Tester une restauration, un failover, la création de capacité dans la région de secours, les permissions break-glass, DNS/certificats, les dashboards et le rollback. Mesurer RTO/RPO observés, pas seulement ceux du contrat de service.

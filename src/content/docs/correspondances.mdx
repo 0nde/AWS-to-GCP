@@ -1,0 +1,16 @@
+---
+title: Table de correspondance des services
+description: Index filtrable des équivalences directes, approximatives et inexistantes.
+---
+
+import ComparisonMatrix from '../../components/ComparisonMatrix.astro';
+
+## Lire la table correctement
+
+Une correspondance sert à orienter la recherche, pas à prescrire une migration. « Approximative » signifie que l’intention générale est proche mais que le modèle de responsabilité, les limites, le coût ou la portée changent. « Sans équivalent » est souvent le signal le plus utile : il faut revoir l’architecture plutôt que chercher un nom de produit.
+
+<ComparisonMatrix />
+
+## Règle d’usage
+
+Avant de sélectionner un service, ouvrir le chapitre du domaine et vérifier : portée globale/régionale/zonal, identité du workload, accès réseau privé, SLA/DR, cohérence, coût dominant, quotas et launch stage. Les mappings sont vérifiés au 31/07/2026 ; les tarifs, fonctionnalités Preview et disponibilités régionales doivent être revalidés dans la source du service.

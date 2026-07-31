@@ -1,0 +1,35 @@
+---
+title: Data, analytics et intelligence artificielle
+description: BigQuery, Dataflow, Dataplex, Looker et Vertex AI face à l’écosystème data AWS.
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+## Philosophie data
+
+AWS assemble souvent S3, Glue, Athena, EMR, Redshift et Lake Formation selon le cas. GCP pousse fortement le modèle **BigQuery + stockage objet + pipelines managés**, où le compute analytique peut être séparé du stockage. Le modèle ne rend pas tous les workloads serverless : Dataproc reste pertinent pour l’écosystème Spark, et Dataflow pour Apache Beam/streaming.
+
+<Mermaid chart={`flowchart LR
+  I[Sources / Pub/Sub] --> F[Dataflow]
+  F --> BQ[BigQuery]
+  F --> CS[Cloud Storage]
+  CS --> DP[Dataplex Universal Catalog]
+  BQ --> L[Looker]
+  BQ --> V[Vertex AI]`} caption="Plateforme data GCP : transport, traitement, gouvernance, analyse et IA sont reliés mais restent des décisions distinctes." />
+
+## BigQuery : conséquences de la séparation compute/storage
+
+BigQuery n’est pas « Redshift sans clusters » : partitions, clustering, réservation/capacité, gouvernance dataset/table, coût des bytes scanned, BI Engine et règles de localisation deviennent des leviers d’architecture. L’équivalent d’un schema, d’un warehouse et d’un data mart se répartit autrement que dans Redshift.
+
+<div class="recommendation"><strong>Recommandation FinOps.</strong> Plafonner les bytes billed, imposer partition filters quand pertinent, mesurer les scans et exporter la facturation vers BigQuery. Le coût data doit être traité comme une propriété des requêtes et du modèle, pas uniquement du stockage.</div>
+
+## Gouvernance et MLOps
+
+Dataplex Universal Catalog, IAM, policy tags et le lineage organisent la gouvernance data ; ils ne remplacent pas les contrôles d’accès propres aux datasets et aux services. Vertex AI couvre entraînement, registry, endpoints, pipelines et foundation models ; évaluer le cycle complet de données, modèle, évaluation, déploiement et monitoring, plutôt que le seul endpoint de modèle.
+
+## Erreurs fréquentes
+
+- Migrer un cluster Redshift puis garder les mêmes stratégies de stockage et de tuning.
+- Employer Dataproc pour chaque transformation alors qu’un pipeline Dataflow ou SQL est plus adapté.
+- Oublier que BigQuery, Cloud Storage et les tables externes ont des contraintes de localisation compatibles à vérifier.
+- Publier un modèle GenAI sans contrôle d’accès aux données de grounding, journalisation ni évaluation de sécurité.
