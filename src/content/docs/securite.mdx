@@ -16,12 +16,12 @@ import Mermaid from '../../components/Mermaid.astro';
 | Cloud Armor | Protection L7/DDoS aux frontends | La sécurité east-west |
 
 <Mermaid chart={`flowchart LR
-  U[Principal IAM] --> A[Google API]
-  A --> I[IAM allow / deny / PAB]
-  A --> V[VPC Service Controls perimeter]
-  W[Workload privé] --> P[Private Google Access / PSC]
-  P --> A
-  S[SCC findings] --> R[SIEM / réponse]`} caption="Les contrôles GCP s’additionnent : identité, périmètre de services, réseau et détection ont chacun un rôle." />
+  PRINCIPAL["Principal IAM"] --> GOOGLE_API["Google API"]
+  GOOGLE_API --> IAM_CONTROLS["IAM allow / deny / PAB"]
+  GOOGLE_API --> VPC_SC["VPC Service Controls perimeter"]
+  WORKLOAD["Workload privé"] --> PRIVATE_ACCESS["Private Google Access / PSC"]
+  PRIVATE_ACCESS --> GOOGLE_API
+  SCC["SCC findings"] --> SIEM["SIEM / réponse"]`} caption="Les contrôles GCP s’additionnent : identité, périmètre de services, réseau et détection ont chacun un rôle." />
 
 ## VPC Service Controls : concept non isomorphe
 

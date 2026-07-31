@@ -12,14 +12,14 @@ Le VPC AWS est régional et contient des subnets zonaux. Le VPC GCP est une ress
 ## Hub-and-spoke : deux façons de raisonner
 
 <Mermaid chart={`flowchart LR
-  subgraph AWS
-    TGW[Transit Gateway] --- VA[VPC app eu-west-1]
-    TGW --- VB[VPC app us-east-1]
+  subgraph AWS["AWS"]
+    TGW["Transit Gateway"] --- VPC_EU["VPC app eu-west-1"]
+    TGW --- VPC_US["VPC app us-east-1"]
   end
-  subgraph GCP
-    HV[Host project / VPC global] --- SA[Service project A]
-    HV --- SB[Service project B]
-    HV --- ON[Cloud VPN / Interconnect]
+  subgraph GCP["GCP"]
+    HOST_VPC["Host project / VPC global"] --- SERVICE_A["Service project A"]
+    HOST_VPC --- SERVICE_B["Service project B"]
+    HOST_VPC --- CONNECTIVITY["Cloud VPN / Interconnect"]
   end`} caption="AWS centralise souvent des VPC régionaux via Transit Gateway ; GCP peut déléguer plusieurs service projects à un VPC global Shared VPC." />
 
 Shared VPC crée un host project, propriétaire des subnets, routes et firewall policies, et des service projects où les équipes créent leurs resources. Il ne faut pas le réduire à du VPC sharing AWS : c’est un mécanisme de délégation d’administration réseau très structurant. [Shared VPC](https://cloud.google.com/vpc/docs/shared-vpc)

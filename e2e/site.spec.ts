@@ -19,3 +19,22 @@ test('pages prioritaires sans violation axe sérieuse', async ({ page }) => {
     expect(report.violations.filter((v) => ['critical', 'serious'].includes(v.impact ?? '')).map((v) => v.id)).toEqual([]);
   }
 });
+
+test('diagrammes Mermaid rendus sans erreur de syntaxe', async ({ page }) => {
+  const diagramPages = [
+    ['/organisation/', 2],
+    ['/iam/', 1],
+    ['/reseau/', 1],
+    ['/messaging/', 1],
+    ['/data-ia/', 1],
+    ['/securite/', 1],
+    ['/resilience/', 1],
+    ['/architectures/', 4],
+  ] as const;
+
+  for (const [path, expectedCount] of diagramPages) {
+    await page.goto(path);
+    await expect(page.locator('.mermaid svg')).toHaveCount(expectedCount);
+    await expect(page.getByText('Syntax error in text', { exact: false })).toHaveCount(0);
+  }
+});

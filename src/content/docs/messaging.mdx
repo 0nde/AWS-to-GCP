@@ -10,11 +10,11 @@ import Mermaid from '../../components/Mermaid.astro';
 Pub/Sub sépare le topic des subscriptions. Plusieurs consumers peuvent lire le même flux via leurs subscriptions ; pull, push, dead-letter policy, rétention et replay sont des décisions de subscription. C’est plus proche d’un bus de distribution que d’une queue SQS isolée.
 
 <Mermaid chart={`flowchart LR
-  P[Producer] --> T[Pub/Sub topic]
-  T --> S1[Pull subscription : Dataflow]
-  T --> S2[Push subscription : Cloud Run]
-  S2 --> DLQ[Dead-letter topic]
-  E[Eventarc] --> CR[Cloud Run target]`} caption="Un topic Pub/Sub peut alimenter plusieurs subscriptions ; Eventarc route les événements de plateforme vers les cibles." />
+  PRODUCER["Producer"] --> TOPIC["Pub/Sub topic"]
+  TOPIC --> PULL["Pull subscription : Dataflow"]
+  TOPIC --> PUSH["Push subscription : Cloud Run"]
+  PUSH --> DLQ["Dead-letter topic"]
+  EVENTARC["Eventarc"] --> CLOUD_RUN["Cloud Run target"]`} caption="Un topic Pub/Sub peut alimenter plusieurs subscriptions ; Eventarc route les événements de plateforme vers les cibles." />
 
 ## Choisir la primitive par intention
 

@@ -10,12 +10,12 @@ import Mermaid from '../../components/Mermaid.astro';
 AWS Organizations agrège des accounts sous des OUs ; les SCP et Control Tower structurent la gouvernance. GCP relie les projets à une Organization, éventuellement via des folders, et fait hériter IAM et Organization Policies. Un projet porte des ressources, des quotas et une association à un Cloud Billing account, mais peut consommer un réseau détenu ailleurs.
 
 <Mermaid chart={`flowchart TB
-  A[AWS Organization] --> B[OU Production]
-  B --> C[Account application]
-  B --> D[Account réseau]
-  E[GCP Organization] --> F[Folder Production]
-  F --> G[Service project application]
-  F --> H[Host project réseau Shared VPC]`} caption="Deux hiérarchies : account centré côté AWS, projets délégués et réseau partagé côté GCP." />
+  AWS_ORG["AWS Organization"] --> AWS_OU["OU Production"]
+  AWS_OU --> AWS_APP["Account application"]
+  AWS_OU --> AWS_NET["Account réseau"]
+  GCP_ORG["GCP Organization"] --> GCP_FOLDER["Folder Production"]
+  GCP_FOLDER --> GCP_APP["Service project application"]
+  GCP_FOLDER --> GCP_NET["Host project réseau Shared VPC"]`} caption="Deux hiérarchies : account centré côté AWS, projets délégués et réseau partagé côté GCP." />
 
 ## Arborescence GCP d’entreprise recommandée
 
@@ -43,12 +43,12 @@ Le folder exprime une délégation et un niveau de garde-fous, pas seulement un 
 Control Tower fournit un workflow et des comptes partagés fortement prescriptifs. La landing zone GCP est une fondation modulaire construite avec Resource Manager, Cloud Identity/IdP, IAM, Organization Policies, réseau, logging et IaC. Google documente explicitement cette modularité : une landing zone n’est pas une zone GCP. [Landing zone GCP](https://cloud.google.com/architecture/landing-zones)
 
 <Mermaid chart={`flowchart LR
-  IdP[IdP entreprise] --> IAM[Cloud Identity / IAM]
-  Org[Organization Policies] --> P[Project Factory]
-  P --> N[Host project réseau]
-  P --> W[Service projects]
-  W --> L[Logs centralisés]
-  N --> W`} caption="Fondation GCP : identité, guardrails et factory précèdent les workloads." />
+  IDP["IdP entreprise"] --> CLOUD_IAM["Cloud Identity / IAM"]
+  ORG_POLICY["Organization Policies"] --> FACTORY["Project Factory"]
+  FACTORY --> HOST_PROJECT["Host project réseau"]
+  FACTORY --> WORKLOAD_PROJECTS["Service projects"]
+  WORKLOAD_PROJECTS --> CENTRAL_LOGS["Logs centralisés"]
+  HOST_PROJECT --> WORKLOAD_PROJECTS`} caption="Fondation GCP : identité, guardrails et factory précèdent les workloads." />
 
 ## Erreurs AWS fréquentes
 

@@ -10,11 +10,11 @@ import Mermaid from '../../components/Mermaid.astro';
 Définir l’objectif de disponibilité par dépendance : zone, région, control plane, identité, réseau, quota, API externe et données. « Multi-AZ » n’est pas un design complet ; une Cloud SQL HA régionale ou un MIG multi-zone protège une panne zonale, pas forcément un sinistre régional.
 
 <Mermaid chart={`flowchart TB
-  G[Global external load balancer] --> R1[Service régional europe-west1]
-  G --> R2[Service régional europe-north1]
-  R1 --> D1[Store primaire / réplication]
-  R2 --> D2[Store secondaire / réplication]
-  M[Monitoring + runbook] --> G`} caption="Le load balancing global ne remplace ni la réplication des données, ni les tests de failover, ni la capacité de quota dans la région de secours." />
+  GLOBAL_LB["Global external load balancer"] --> REGION_PRIMARY["Service régional europe-west1"]
+  GLOBAL_LB --> REGION_SECONDARY["Service régional europe-north1"]
+  REGION_PRIMARY --> DATA_PRIMARY["Store primaire / réplication"]
+  REGION_SECONDARY --> DATA_SECONDARY["Store secondaire / réplication"]
+  MONITORING["Monitoring + runbook"] --> GLOBAL_LB`} caption="Le load balancing global ne remplace ni la réplication des données, ni les tests de failover, ni la capacité de quota dans la région de secours." />
 
 ## Patterns comparés
 
